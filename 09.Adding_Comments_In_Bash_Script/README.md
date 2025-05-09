@@ -40,3 +40,16 @@ Consistent style: Maintain a consistent commenting style throughout your scripts
 **echo "Hello, world!" # Prints the greeting**
 
 ![](./2.Print.png)
+
+## Task
+**Command `chmod +x` for permission to execute**
+![](./4.%20Executable%20permission.png)
+
+**Use of Vim code Editor for Bash**
+Use of `Vim` to create and edit 
+
+**commented_script.sh file** 
+![](./6.vimfile3.png)
+
+**Final output on my terminal**
+![](./7.%20Demo.png)
