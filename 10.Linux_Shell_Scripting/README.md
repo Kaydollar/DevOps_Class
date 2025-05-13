@@ -82,6 +82,39 @@ then: if the elif condition is true, execute the commands that follow the keywor
 
 ![](6.%20Execute%20code%203.png)
 
+The syntax for using else:
+
+    if [ condition1 ]; then 
+    commands1
+    elif [ condition2 ]; then 
+    commands2
+    else [initial value]
+    fi
+
+elif: The keyword is used after an if or another elif block. it allows to specify an alternative condition to test if the previous condition is false.
+
+[condition 2]: The new condition you want to evaluate. Like the if statement, this is enclosed in square brackets[]
+
+then: if the elif condition is true, execute the commands that follow the keyword
+
+then[Condition 3]: if the two conditions [command 1] and [command 2] isn't true return [default value]
+
+#!/bin/bash
+
+read -p "Enter a number: " num
+
+if [ $num -gt 0 ]; then
+    echo "The number is positive."
+elif [ $num -lt 0 ]; then
+    echo "The number is negative."
+else
+    echo "The number is zero."
+fi
+
+![](15.%20Execute%20code%203.png)
+
+![](16.%20Output.png)
+
 # Looping Statements | Shell Script
 Looping Statements in Shell Scripting: There are total 3 looping statements that can be used in bash programming.
 
