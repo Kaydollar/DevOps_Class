@@ -49,5 +49,12 @@ The set -e option in shell scripts instructs the shell to immediately exit if an
 
 ![](10.%20Output.png)
 
+## Handling S3 Bucket Existence Error.
+
+![](11.%20Bucket%20Creation.png)
+
+### Output:
+
+
  ## Conclusion
 Effective error handling is essential for writing robust and reliable shell scripts. By implementing techniques like checking exit status codes, logging errors, using trap commands and set -e, you can ensure that your scripts handle errors gracefully and continue to perform optimally even in challenging environments. Remember to test thoroughly and continuously improve error handling to enhance the resilience of your shell scripts.
