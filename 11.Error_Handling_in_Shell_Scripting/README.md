@@ -51,7 +51,7 @@ The set -e option in shell scripts instructs the shell to immediately exit if an
 
 ## Handling S3 Bucket Existence Error.
 
-![](11.%20Bucket%20Creation.png)
+![](./12.%20Bucket%20Creation.png)
 
 ### Output:
 
