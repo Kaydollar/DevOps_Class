@@ -62,3 +62,186 @@ iv. Create a user account
 
 ![](9.%20Setup%20completed.png)
 
+**Jenkins Job**
+
+![](10.%20creating%20a%20JOB.png)
+
+![](11.%20creating%20Job.png)
+
+1. Go to the Jenkins Dashboard
+In your browser:
+
+http://your-ec2-ip:8080
+
+Click on “New Item”
+Enter a name (darey.io)
+
+Select Freestyle project
+
+Click OK
+
+Configure the Project
+
+You’ll land on the project configuration page.
+
+Basic Setup:
+
+Description (optional): "This job prints Hello World"
+
+Under “Build” section:
+
+- Click “Add build step” → choose “Execute shell”
+
+- In the command box, enter:
+```bash
+echo "Hello from Jenkins!"
+```
+4. Save the Job
+- Scroll down and click 
+
+Run the Job
+- Click “Build Now” (on the left sidebar)
+
+![](13.%20Build%20Now.png)
+
+6. Check the Output
+- Under Build History, click the build number (#1)
+
+- Click Console Output
+
+![](14.%20Click.png)
+
+![](15.%20Output.png)
+
+### Next Step: Set Up Jenkins with GitHub
+
+**Task:**
+
+- Connect Jenkins to a GitHub repository
+
+- Pull code from GitHub
+
+- Run a build automatically or manually
+
+1. Install Git Plugin (if not already)
+
+- Go to:
+
+```
+Jenkins Dashboard → Manage Jenkins → Plugins → Available → Search: Git Plugin
+```
+
+2. Create a New Job
+
+- Go to Jenkins dashboard → Click “New Item”
+
+- Name: GitHub-Build-Job
+
+- Type: Freestyle Project
+
+- Click OK
+
+3. Configure Git Repo
+
+- Under “Source Code Management”:
+
+- Select Git
+
+- In Repository URL, paste your GitHub repo:
+
+```
+https://github.com/<your-username>/<your-repo>.git
+```
+
+If it’s private, you’ll need to add GitHub credentials.
+
+![](16.%20source%20code.png)
+
+4. Add GitHub Credentials (Optional if private repo)
+
+- Go to Jenkins → Manage Jenkins → Credentials → Global → Add Credentials
+
+- Choose Username and Password or use Personal Access Token if using GitHub's new token auth.
+
+- Go back to the job → under Credentials, select the one you added.
+
+5. Add a Simple Build Step
+Under Build, click Add build step → Execute shell
+
+- Example:
+
+```
+echo "Building project from GitHub"
+ls -la
+```
+![](17.%20Build%20Step.png)
+
+6. Save and Build
+- Click Save
+
+- Click Build Now
+
+- View Console Output to see Jenkins pulling code from GitHub and executing your script
+
+![](18.%20Output.png)
+
+### GitHub Push → Jenkins Build Trigger
+
+1. Enable GitHub Webhook Trigger in Jenkins Job
+- Go to your Jenkins job (GitHub-Build-Job)
+
+- Click Configure
+
+- Scroll to Build Triggers
+
+✅ Check “GitHub hook trigger for GITScm polling”
+
+- Click Save
+
+2. Expose Jenkins to the Internet
+GitHub needs to reach Jenkins, so Jenkins must be publicly accessible (not just on localhost or private IP).
+
+Options:
+- Use a public EC2 IP/DNS + open port 8080 in the inbound rules.
+
+- OR use ngrok to create a secure public tunnel:
+
+```bash
+./ngrok http 8080
+```
+3. Add a GitHub Webhook
+
+- Go to your repo: github.com/Kaydollar/github-build-job
+
+- Click on Settings > Webhooks > Add webhook
+
+Set:
+
+Payload URL:
+
+perl
+Copy
+Edit
+http://<your_public_jenkins_url>/github-webhook/
+
+(Use https://abc123.ngrok.io/github-webhook/ if using ngrok)
+
+Content type: application/json
+
+✅ Just select "Push events"
+
+- Click Add webhook
+
+4. Ensure Git Plugin is Installed in Jenkins
+- Go to Manage Jenkins > Manage Plugins
+
+- Make sure Git Plugin and GitHub Integration Plugin are installed and updated
+
+5. Test It
+
+- Make a small commit to your repo
+
+- Push it to GitHub
+
+- Jenkins should trigger the build automatically 
+
