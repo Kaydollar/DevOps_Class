@@ -245,3 +245,83 @@ Content type: application/json
 
 - Jenkins should trigger the build automatically 
 
+### Creating and Managing Job in Jenkins
+
+ 1. Access Jenkins Dashboard
+Open Jenkins in your browser:
+http://localhost:8080 or your EC2/ngrok URL
+
+![](32.%20EC2Ngok.png)
+
+Log in using your credentials.
+
+![](33.%20Logged-in.png)
+
+2. Create a New Pipeline Job in Jenkins
+Go to Jenkins Dashboard
+
+Click "New Item"
+
+![](34.%20New%20Item.png)
+
+Enter a name like: pipeline-github-job
+
+Select Pipeline
+
+Click OK
+
+![](35.%20Naming.png)
+
+ 2. Connect to GitHub Repository
+In Pipeline Configuration:
+
+Scroll to Pipeline section
+
+Set:
+
+Definition: Pipeline script from SCM
+
+SCM: Git
+
+Repository URL:
+
+arduino
+Copy
+Edit
+```
+https://github.com/YOUR_USERNAME/YOUR_REPO.git
+```
+
+![](36.%20Step%202.png)
+
+Branch: */main or */master
+
+Script Path: Jenkinsfile (default)
+
+You can also add credentials if it’s a private repo.
+
+![](37.%20Step%202.png)
+
+3. Create a Jenkinsfile in Your Repo
+
+In your local repo or on GitHub, create a file named:
+
+```
+Jenkinsfile
+```
+![](38,%20Step%203.png)
+
+5. Trigger the Build in Jenkins
+Go to Jenkins
+
+Open the pipeline job
+
+Click Build Now
+
+![](39.%20Build%20Now.png)
+
+You can view progress in Blue Ocean plugin or Console Output
+
+![](40.%20Build.png)
+
+![](41.%20Success.png)
