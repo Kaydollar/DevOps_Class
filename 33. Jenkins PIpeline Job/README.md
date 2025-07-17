@@ -224,5 +224,10 @@ Pushing the `dockerfile` and `index.html` file will trigger the Jenkins to autom
 
 To access the content of `index.html` on the web browser we must edit the first inbound rule and open the port we mapped the container to (8081)
 
+![](17.%20Edit%20inbound%20rule.png)
 
+We can now access the content of index.html on the web browser
+```
+http://jenkins-ip-address:8081
+```
 
