@@ -281,3 +281,92 @@ Go to GitHub > Actions to watch it run:
 
 - Deploy phase will push to Heroku
 
+**Enhanced Test Cases (Jest Example)**
+```bash
+// __tests__/app.test.js
+const request = require('supertest');
+const app = require('../index'); // or wherever your Express app is exported
+
+describe('GET /', () => {
+  it('should respond with 200 and expected message', async () => {
+    const response = await request(app).get('/');
+    expect(response.statusCode).toBe(200);
+    expect(response.text).toMatch(/Hello|Welcome|OK/); // Customize to your app
+  });
+});
+```
+Run with:
+```bash
+npm install --save-dev jest supertest
+```
+![](14.%20Express.png)
+**Update package.json:**
+```bash
+"scripts": {
+  "test": "jest"
+}
+```
+**Use a Build Matrix in GitHub Actions**
+
+Test your app with multiple Node.js versions for better compatibility:
+
+```bash
+name: Node.js CI/CD
+
+on:
+  push:
+    branches: [ "main", "dev", "staging" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]  # You can add/remove versions here
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+```
+**Add Dynamic Branch Deploy & Error Handling**
+
+Update the deploy section to:
+- Deploy only from `main`
+- Fail gracefully with useful logs
+- Add retry logic (optional)
+
+```bash
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Heroku (if branch is main)
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+        continue-on-error: false  # Force exit if deploy fails
+
+      - name: Notify failure (optional)
+        if: failure()
+        run: echo "🚨 Deployment failed!"
+```

@@ -39,3 +39,4 @@ Guide: [The Command Line Interface](https://www.codecademy.com/article/command-l
 Required for accessing GitHub, documentation and online resources.
 
 10. Willingness to learn and Experiment
+
