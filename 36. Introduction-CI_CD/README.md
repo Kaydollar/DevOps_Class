@@ -370,3 +370,177 @@ Update the deploy section to:
         if: failure()
         run: echo "🚨 Deployment failed!"
 ```
+**Configuring Build Matrices**
+
+- Implement matrix builds to test across multiple version or environment.
+- Mange build dependecies efficiently.
+1. Parallel and Matrix Build:
+    
+    A matrix build allows you to run job across multiple environments and versions simultaneously, increasing efficiency.
+
+    This is useful for testing your application in different versions of runtime environment or dependencies. 
+
+```bash
+strategy:
+  matrix:
+    node-version: [12.x, 14.x, 16.x]
+    # This matrix will run the job multiple times, once for each specified Node.js version (12.x, 14.x, 16.x).
+    # The job will be executed separately for each version, ensuring compatibility across these versions.
+```
+2. Manage Build Dependencies:
+
+    Handling dependencies and services required for your Build process is crucial.
+
+    Utilizing caching to reduce the time spent on downloading and installing dependencies repeatedly.
+```bash
+- name: Cache Node Modules
+  uses: actions/cache@v2
+  with:
+    path: ~/.npm
+    key: ${{" runner.os "}}-node-${{" hashFiles('**/package-lock.json') "}}
+    restore-keys: |
+      ${{" runner.os "}}-node-
+  # This snippet caches the installed node modules based on the hash of the 'package-lock.json' file.
+  # It helps in speeding up the installation process by reusing the cached modules when the 'package-lock.json' file hasn't changed.
+```
+
+**Full Example: Matrix + Cache**
+```bash
+name: Node.js Matrix CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+```
+![](15.%20Multiple.png)
+
+**Integrating Code Quality Checks**
+
+- Integrate code Analysis tools into the GitHub Actions Workflows
+- Configure linters and static code analyzers for maintaining code quality. 
+
+1. Adding code Analysis tools:
+- Include steps in your workflow to run tools that Analyse code quality and adherence to coding standards.
+
+```bash
+- name: Run Linter
+  run: npx eslint .
+  # 'npx eslint .' runs the ESLint tool on all the files in your repository.
+  # ESLint is a static code analysis tool used to identify problematic patterns in JavaScript code.
+```
+2. Configuring Linters and Static code Analyzers:
+- Ensure your repositories includes configuration files for this tools such as `eslintrc` for ESLint.
+```bash
+# Ensure to include a .eslintrc file in your repository
+# This file configures the rules for ESLint, specifying what should be checked.
+# Example .eslintrc content:
+# {"\n   #   \"extends\": \"eslint:recommended\",\n   #   \"rules\": {\n   #     // additional, custom rules here\n   #   "}
+# }
+```
+**Running ESLint in GitHub Actions Workflow**
+
+Add this step after installing dependencies, so the linter can analyze your code:
+```bash
+- name: Run Linter
+  run: npx eslint .
+```
+
+ **Sample .eslintrc.json Configuration**
+- You need this file in your root directory to define your rules:
+```bash
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "off",
+    "semi": ["error", "always"]
+  }
+}
+```
+![](16.%20eslintrc.png)
+**Complete Workflow: CI + Lint + Matrix**
+- Here's a complete workflow integrating all the pieces:
+```bash
+name: Node.js CI/CD with Linting
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint .
+
+      - name: Run tests
+        run: npm test
+```
+![](17.%20nano.png)
