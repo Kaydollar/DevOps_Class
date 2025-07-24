@@ -39,6 +39,7 @@
 Example Snippet for a Versioning Script in GitHubActions:
 ```bash
 name: Bump version and tag
+
 on:
   push:
     branches:
@@ -48,18 +49,20 @@ jobs:
   build:
     name: Create Tag
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        # The checkout action checks out your repository under $GITHUB_WORKSPACE, so your workflow can access it.
+        # Checks out the code so version bump can work on repo
 
       - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.26.0
+        uses: anothrNick/github-tag-action@1.66.0
         env:
-          GITHUB_TOKEN: ${{" secrets.GITHUB_TOKEN "}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
-        # This action automatically increments the patch version and tags the commit.
-        # 'DEFAULT_BUMP' specifies the type of version bump (major, minor, patch).
+          WITH_V: true
+        # DEFAULT_BUMP options: patch, minor, major, or false (if you want only manual bumping).
+        # WITH_V adds a "v" prefix to the tag, like v1.2.3 (recommended for semantic versioning)
 ```
 This action will automatically increase the patch version and create a new tag each time changes are pushed to the main branch.
 
@@ -72,26 +75,28 @@ This action will automatically increase the patch version and create a new tag e
 on:
   push:
     tags:
-      - '*'
+      - '*'  # Triggers on all tags
 
 jobs:
   build:
     name: Create Release
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        # Checks out the code in the tag that triggered the workflow.
+        # Checks out the code corresponding to the tag.
 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{" secrets.GITHUB_TOKEN "}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{" github.ref "}}
-          release_name: Release ${{" github.ref "}}
-          # This step creates a new release in GitHub using the tag name.
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
 ```
 The `actions/create-release@v1` action is used to create a release on GitHub. It uses the tag that triggered the workflow to name and label the release. 
 
@@ -138,32 +143,129 @@ on:
   push:
     branches:
       - main
-  # This workflow triggers on a push to the 'main' branch.
+  # Triggers on push to 'main' branch.
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Specifies the runner environment.
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      # Checks out your repository under $GITHUB_WORKSPACE.
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{" secrets.AWS_ACCESS_KEY_ID "}}
-        aws-secret-access-key: ${{" secrets.AWS_SECRET_ACCESS_KEY "}}
-        aws-region: us-west-2
-      # Configures AWS credentials from GitHub secrets.
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+        # Reads AWS keys from GitHub repository secrets.
 
-    - name: Deploy to AWS
-      run: |
-        # Add your deployment script here.
-        # For example, using AWS CLI commands to deploy.
+      - name: Deploy to AWS
+        run: |
+          echo "Starting deployment..."
+          # Example for Elastic Beanstalk:
+          zip -r app.zip .
+          aws elasticbeanstalk create-application-version \
+            --application-name "my-node-app" \
+            --version-label $GITHUB_SHA \
+            --source-bundle S3Bucket="my-bucket",S3Key="app-$GITHUB_SHA.zip"
+          aws elasticbeanstalk update-environment \
+            --environment-name "my-env" \
+            --version-label $GITHUB_SHA
 ```
 This workflow deploys your application to AWS when changes are pushed to the main branch.
+
+### Example of Azure Deploymnet
+```bash
+name: CI/CD to Azure App Service
+
+on:
+  push:
+    branches:
+      - main  # deploys on push to main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint Code
+        run: npx eslint .
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Build app (optional)
+        run: npm run build
+        # Use only if you have a build step, e.g. React front-end or TypeScript
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: .
+``` 
+### Example GCP Deployment:
+```bash
+name: Deploy to GCP Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${REGION}-docker.pkg.dev
+        env:
+          REGION: ${{ secrets.GCP_REGION }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/${{ secrets.GCP_RUN_SERVICE }}:$GITHUB_SHA
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Deploy to Cloud Run
+        run: |
+          IMAGE=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/${{ secrets.GCP_RUN_SERVICE }}:$GITHUB_SHA
+          gcloud run deploy ${{ secrets.GCP_RUN_SERVICE }} \
+            --image $IMAGE \
+            --region ${{ secrets.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated
+```
 
 ### Step 3: Configuring Deployment Environments
 1. Setting UP Environment VAriables and Secrets
