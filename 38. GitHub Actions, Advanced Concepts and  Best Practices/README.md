@@ -57,6 +57,9 @@ jobs:
       run: npm run build
 
 ```
+
+![](1.%20Steps.png)
+
 2. **Organize Workflow Files:**
 - Store workflows in the * -github/workflows* directory.
 - Use separate files for different workflows (e.g., ' build.yml*, `deploy-yml`).
