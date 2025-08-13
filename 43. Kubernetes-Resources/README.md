@@ -269,3 +269,29 @@ minikube service my-nginx-service --url
 7. Then I opened my web browser and input this URL http://127.0.0.1:64090/.
 
 ![](Accessed.png)
+
+Error Fixed with PullBack. 
+
+Steps below:
+
+That means Kubernetes is still trying to pull kicbase/echo-server:1.0 from Docker Hub instead of using the one you loaded into Minikube.
+
+1. Delete the broken deployment
+```bash
+kubectl delete deployment hello-minikube
+```
+
+2. Recreate it with a fixed pull policy
+```bash
+kubectl create deployment hello-minikube \
+  --image=kicbase/echo-server:1.0 \
+  --dry-run=client -o yaml \
+  | sed 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/' \
+  | kubectl apply -f -
+```
+
+3. Watch until it runs
+```bash
+kubectl get pods -w
+```
+
